@@ -76,6 +76,20 @@ services:
         cpu: 500m
         memory: 512Mi
 
+  - name: worker
+    port: 3004
+    replicaCount: 2
+    image:
+      repository: ai-synthetic/worker
+      tag: latest
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
   - name: root-cause-agent
     port: 3003
     replicaCount: 1

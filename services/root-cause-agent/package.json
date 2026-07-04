@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ai-synthetic/database": "file:../../packages/database",
-    "@ai-synthetic/shared-types": "file:../../packages/shared-types"
+    "@ai-synthetic/shared-types": "file:../../packages/shared-types",
+    "@ai-synthetic/message-queue": "file:../../packages/message-queue"
   }
 }

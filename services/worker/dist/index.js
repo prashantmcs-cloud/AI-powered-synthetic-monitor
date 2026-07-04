@@ -1,12 +1,12 @@
-import { dequeue } from '@ai-synthetic/message-queue';
-import { executeSpecFiles, analyzeFailure } from '@ai-synthetic/playwright-execution-engine/src/runner.js';
+import { dequeue, enqueue, QUEUE_NAMES } from '@ai-synthetic/message-queue';
+import { executeSpecFiles } from '@ai-synthetic/playwright-execution-engine';
 import { DatabaseRepository } from '@ai-synthetic/database';
 export async function startWorker() {
     console.log('Test execution worker started');
     const repo = new DatabaseRepository();
     while (true) {
         try {
-            const message = await dequeue('TEST_EXECUTION');
+            const message = await dequeue(QUEUE_NAMES.TEST_EXECUTION);
             if (!message) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 continue;
@@ -19,15 +19,16 @@ export async function startWorker() {
                 riskScore: payload.riskScore
             });
             for (const run of runs) {
-                await repo.updateTestRunStatus(run.id ?? '', run.status, run.durationMs);
+                const createdAt = run.createdAt ?? new Date().toISOString();
+                const durationMs = run.durationMs ?? (Date.now() - new Date(createdAt).getTime());
+                await repo.updateTestRunStatus(run.id ?? '', run.status, durationMs);
                 if (run.status === 'failed') {
-                    const insight = await analyzeFailure({
+                    await enqueue(QUEUE_NAMES.ROOT_CAUSE, {
                         testRunId: run.id ?? '',
                         testId: run.testId,
-                        artifacts: run.artifacts.screenshots,
-                        error: 'Test failed during execution'
+                        artifacts: run.artifacts,
+                        relatedCommit: payload.commitSha
                     });
-                    await repo.saveRootCause(insight);
                 }
             }
             console.log(`Completed test execution processing`);

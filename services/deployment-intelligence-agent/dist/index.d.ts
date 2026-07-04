@@ -16,3 +16,4 @@ export interface BuildSnapshot {
 }
 export declare function analyzeDeploymentIntelligence(event: CommitEvent, build: BuildSnapshot): DeploymentIntelligenceReport;
 export { analyzeCommitChanges, generatePlaywrightTests };
+export declare function startDeploymentIntelligenceAgent(): Promise<void>;

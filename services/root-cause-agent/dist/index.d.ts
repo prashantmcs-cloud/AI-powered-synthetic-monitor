@@ -7,3 +7,4 @@ export interface FailureContext {
     error?: string;
 }
 export declare function analyzeFailure(context: FailureContext): Omit<RootCauseInsight, 'id'>;
+export declare function startRootCauseAgent(): Promise<void>;

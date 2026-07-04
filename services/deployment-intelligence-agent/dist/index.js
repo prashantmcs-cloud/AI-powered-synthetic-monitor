@@ -1,5 +1,7 @@
 import { createDeploymentIntelligenceReport, createRiskAssessment } from '@ai-synthetic/shared-types';
 import { analyzeCommitChanges, generatePlaywrightTests } from './ai-analyzer.js';
+import { DatabaseRepository } from '@ai-synthetic/database';
+import { dequeue, enqueue, QUEUE_NAMES } from '@ai-synthetic/message-queue';
 export function analyzeDeploymentIntelligence(event, build) {
     const comparison = {
         currentCommit: {
@@ -39,3 +41,50 @@ export function analyzeDeploymentIntelligence(event, build) {
     });
 }
 export { analyzeCommitChanges, generatePlaywrightTests };
+export async function startDeploymentIntelligenceAgent() {
+    console.log('Deployment intelligence agent started');
+    const repo = new DatabaseRepository();
+    while (true) {
+        try {
+            const message = await dequeue(QUEUE_NAMES.DEPLOYMENT_REPORT);
+            if (!message) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                continue;
+            }
+            console.log('Processing deployment report:', message.id);
+            const payload = message.payload;
+            const build = {
+                buildId: `build-${payload.commitSha.substring(0, 7)}`,
+                previousBuildId: `build-${payload.previousCommitSha.substring(0, 7)}`,
+                bundleSize: 210000,
+                dependencyDelta: []
+            };
+            const report = analyzeDeploymentIntelligence(payload, build);
+            const savedReport = await repo.saveDeploymentReport({
+                commitSha: report.commitSha,
+                previousCommitSha: report.previousCommitSha,
+                buildId: report.buildId,
+                previousBuildId: report.previousBuildId,
+                riskScore: report.riskAssessment.riskScore,
+                affectedFlows: report.riskAssessment.affectedFlows,
+                rationale: report.riskAssessment.rationale,
+                generatedSpecFiles: report.generatedSpecFiles,
+                correlationId: report.correlationId
+            });
+            await enqueue(QUEUE_NAMES.TEST_EXECUTION, {
+                reportId: savedReport.id,
+                specFiles: report.generatedSpecFiles,
+                riskScore: report.riskAssessment.riskScore,
+                commitSha: report.commitSha
+            });
+            console.log(JSON.stringify({ event: 'tests.generated.enqueued', reportId: savedReport.id }, null, 2));
+        }
+        catch (error) {
+            console.error('Deployment intelligence agent error:', error);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+    }
+}
+if (import.meta.url === `file://${process.argv[1]}`) {
+    startDeploymentIntelligenceAgent();
+}

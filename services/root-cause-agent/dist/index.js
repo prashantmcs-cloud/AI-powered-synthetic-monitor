@@ -1,3 +1,5 @@
+import { DatabaseRepository } from '@ai-synthetic/database';
+import { dequeue, QUEUE_NAMES } from '@ai-synthetic/message-queue';
 export function analyzeFailure(context) {
     const errorPatterns = [
         { pattern: /timeout|timed out/i, rootCause: 'Timeout', suggestedFix: 'Increase timeout or check server health', weight: 0.15 },
@@ -27,4 +29,43 @@ export function analyzeFailure(context) {
         relatedCommit: context.relatedCommit,
         evidenceRefs: context.artifacts
     };
+}
+export async function startRootCauseAgent() {
+    console.log('Root cause agent started');
+    const repo = new DatabaseRepository();
+    while (true) {
+        try {
+            const message = await dequeue(QUEUE_NAMES.ROOT_CAUSE);
+            if (!message) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                continue;
+            }
+            console.log('Processing test failure:', message.id);
+            const payload = message.payload;
+            const insight = analyzeFailure({
+                testRunId: payload.testRunId,
+                testId: payload.testId,
+                artifacts: payload.artifacts?.screenshots ?? [],
+                error: payload.error,
+                relatedCommit: payload.relatedCommit
+            });
+            await repo.saveRootCause({
+                testRunId: insight.testRunId,
+                failureSummary: insight.failureSummary,
+                rootCause: insight.rootCause,
+                suggestedFix: insight.suggestedFix,
+                confidence: insight.confidence,
+                evidenceRefs: insight.evidenceRefs,
+                relatedCommit: insight.relatedCommit
+            });
+            console.log(JSON.stringify({ event: 'insight.generated', testRunId: insight.testRunId }, null, 2));
+        }
+        catch (error) {
+            console.error('Root cause agent error:', error);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+    }
+}
+if (import.meta.url === `file://${process.argv[1]}`) {
+    startRootCauseAgent();
 }

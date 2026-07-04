@@ -1,7 +1,7 @@
 import { createBaseEnvelope, createRootCauseInsight, type TestRun } from '@ai-synthetic/shared-types';
 import { executeSpecFiles } from './runner.js';
 
-export { executeSpecFiles, analyzeFailure } from './runner.js';
+export { executeSpecFiles };
 export type { ExecutionInput, FailureContext } from './runner.js';
 
 export function createFailureInsight(testRun: TestRun) {
@@ -17,10 +17,12 @@ export function createFailureInsight(testRun: TestRun) {
  }
 
 export function emitExecutionEvent(input: { reportId: string; specFiles: string[]; riskScore: number }) {
-  return createBaseEnvelope({
-    eventType: 'tests.generated',
-    orgId: 'acme',
-    projectId: 'platform',
-    payload: input
-  });
-}
+   return createBaseEnvelope({
+     eventType: 'tests.generated',
+     orgId: 'acme',
+     projectId: 'platform',
+     payload: input
+   });
+ }
+
+export * from './runner.js';

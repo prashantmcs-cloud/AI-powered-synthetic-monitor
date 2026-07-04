@@ -8,31 +8,29 @@ export const QUEUE_NAMES = {
    TEST_EXECUTION: 'test-execution',
    ROOT_CAUSE: 'root-cause',
    DEPLOYMENT_REPORT: 'deployment-report'
-} as const;
+ } as Record<string, string>;
 
 export interface QueueMessage {
    id: string;
-   type: keyof typeof QUEUE_NAMES;
+   type: string;
    payload: unknown;
    timestamp: string;
-}
+ }
 
-export async function enqueue(type: keyof typeof QUEUE_NAMES, payload: unknown): Promise<string> {
+export async function enqueue(type: string, payload: unknown): Promise<string> {
    const message: QueueMessage = {
      id: crypto.randomUUID(),
      type,
      payload,
      timestamp: new Date().toISOString()
    };
-   
-   const queueName = QUEUE_NAMES[type];
-   await redis.lpush(queueName, JSON.stringify(message));
+
+   await redis.lpush(type, JSON.stringify(message));
    return message.id;
  }
 
-export async function dequeue(type: keyof typeof QUEUE_NAMES): Promise<QueueMessage | null> {
-   const queueName = QUEUE_NAMES[type];
-   const data = await redis.rpop(queueName);
+export async function dequeue(type: string): Promise<QueueMessage | null> {
+   const data = await redis.rpop(type);
    return data ? JSON.parse(data) : null;
  }
 

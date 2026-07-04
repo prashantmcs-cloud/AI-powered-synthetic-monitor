@@ -1,10 +1,7 @@
 import { createServer } from 'node:http';
 import { processGitHubPush } from './index.js';
-import { analyzeDeploymentIntelligence } from '../../deployment-intelligence-agent/src/index.js';
-import { executeSpecFiles } from '../../playwright-execution-engine/src/runner.js';
-import { analyzeFailure } from '../../root-cause-agent/src/index.js';
-import { DatabaseRepository } from '@ai-synthetic/database';
-import { enqueue } from '@ai-synthetic/message-queue';
+import { enqueue, QUEUE_NAMES } from '@ai-synthetic/message-queue';
+import type { CommitEvent } from '../../deployment-intelligence-agent/src/index.js';
 
 const port = Number(process.env.PORT || 3000);
 
@@ -21,85 +18,48 @@ export function startWebhookServer() {
        body += chunk;
      });
      req.on('end', async () => {
-       const repo = new DatabaseRepository();
        try {
          const payload = JSON.parse(body || '{}');
          const envelope = processGitHubPush(payload);
 
-        if (envelope.eventType === 'commit.pushed') {
-          const commitPayload = envelope.payload as { 
-            repo: string; 
-            branch: string; 
-            commitSha: string; 
-            previousCommitSha: string; 
-            pusher: string; 
-            isMasterBranch: boolean 
-          };
-          
-          const report = analyzeDeploymentIntelligence({
-            repo: commitPayload.repo,
-            branch: commitPayload.branch,
-            commitSha: commitPayload.commitSha,
-            previousCommitSha: commitPayload.previousCommitSha,
-            pusher: commitPayload.pusher,
-            timestamp: new Date().toISOString()
-          }, {
-            buildId: `build-${commitPayload.commitSha.substring(0, 7)}`,
-            previousBuildId: `build-${commitPayload.previousCommitSha.substring(0, 7)}`,
-            bundleSize: 210000,
-            dependencyDelta: []
-          });
+         if (envelope.eventType === 'commit.pushed') {
+           const commitPayload = envelope.payload as {
+             repo: string;
+             branch: string;
+             commitSha: string;
+             previousCommitSha: string;
+             pusher: string;
+             isMasterBranch: boolean
+           };
 
-          await repo.saveDeploymentReport({
-            commitSha: report.commitSha,
-            previousCommitSha: report.previousCommitSha,
-            buildId: report.buildId!,
-            previousBuildId: report.previousBuildId,
-            riskScore: report.riskAssessment.riskScore,
-            affectedFlows: report.riskAssessment.affectedFlows,
-            rationale: report.riskAssessment.rationale,
-            generatedSpecFiles: report.generatedSpecFiles,
-            correlationId: report.correlationId
-          });
+           const event: CommitEvent = {
+             repo: commitPayload.repo,
+             branch: commitPayload.branch,
+             commitSha: commitPayload.commitSha,
+             previousCommitSha: commitPayload.previousCommitSha,
+             pusher: commitPayload.pusher,
+             timestamp: new Date().toISOString()
+           };
 
-          const runs = await executeSpecFiles({
-            reportId: report.id ?? 'report-local',
-            specFiles: report.generatedSpecFiles,
-            riskScore: report.riskAssessment.riskScore
-          });
+           await enqueue(QUEUE_NAMES.DEPLOYMENT_REPORT, event);
+           console.log(JSON.stringify({ event: 'commit.pushed.enqueued', repo: event.repo, commitSha: event.commitSha }, null, 2));
+         }
 
-          for (const run of runs) {
-            if (run.status === 'failed') {
-              const insight = await analyzeFailure({
-                testRunId: run.id ?? '',
-                testId: run.testId,
-                artifacts: run.artifacts.screenshots,
-                relatedCommit: report.commitSha
-              });
-              await repo.saveRootCause(insight);
-            }
-          }
+         res.writeHead(200, { 'content-type': 'application/json' });
+         res.end(JSON.stringify({ received: true, eventType: envelope.eventType }));
+       } catch (error) {
+         res.writeHead(500, { 'content-type': 'application/json' });
+         res.end(JSON.stringify({ error: String(error) }));
+       }
+     });
+   });
 
-          await enqueue('TEST_EXECUTION', { reportId: report.id, runs });
-          
-          console.log(JSON.stringify({ event: 'deployment.intelligence.processed', report, runs }, null, 2));
-        }
+   server.listen(port, () => {
+     console.log(`Webhook receiver listening on http://localhost:${port}`);
+   });
 
-        res.writeHead(200, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ received: true, eventType: envelope.eventType }));
-      } catch (error) {
-        res.writeHead(500, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ error: String(error) }));
-      }
-    });
-  });
-
-  server.listen(port, () => {
-    console.log(`Webhook receiver listening on http://localhost:${port}`);
-  });
-
-  return server;
-}
+   return server;
+ }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   startWebhookServer();

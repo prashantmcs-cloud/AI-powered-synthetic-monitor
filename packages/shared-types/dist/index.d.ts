@@ -260,4 +260,432 @@ export declare function createAiTestSpec(input: {
         url?: string;
     }>;
 }): AiTestSpec;
+export declare const commitPushedSchema: z.ZodObject<{
+    eventId: z.ZodOptional<z.ZodString>;
+    eventType: z.ZodString;
+    occurredAt: z.ZodString;
+    correlationId: z.ZodString;
+    orgId: z.ZodString;
+    projectId: z.ZodString;
+} & {
+    payload: z.ZodObject<{
+        repo: z.ZodString;
+        branch: z.ZodString;
+        commitSha: z.ZodString;
+        previousCommitSha: z.ZodString;
+        pusher: z.ZodString;
+        isMasterBranch: z.ZodBoolean;
+    }, "strip", z.ZodTypeAny, {
+        branch: string;
+        commitSha: string;
+        previousCommitSha: string;
+        repo: string;
+        pusher: string;
+        isMasterBranch: boolean;
+    }, {
+        branch: string;
+        commitSha: string;
+        previousCommitSha: string;
+        repo: string;
+        pusher: string;
+        isMasterBranch: boolean;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        branch: string;
+        commitSha: string;
+        previousCommitSha: string;
+        repo: string;
+        pusher: string;
+        isMasterBranch: boolean;
+    };
+    eventId?: string | undefined;
+}, {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        branch: string;
+        commitSha: string;
+        previousCommitSha: string;
+        repo: string;
+        pusher: string;
+        isMasterBranch: boolean;
+    };
+    eventId?: string | undefined;
+}>;
+export declare const testsGeneratedSchema: z.ZodObject<{
+    eventId: z.ZodOptional<z.ZodString>;
+    eventType: z.ZodString;
+    occurredAt: z.ZodString;
+    correlationId: z.ZodString;
+    orgId: z.ZodString;
+    projectId: z.ZodString;
+} & {
+    payload: z.ZodObject<{
+        reportId: z.ZodString;
+        specFiles: z.ZodArray<z.ZodString, "many">;
+        riskScore: z.ZodNumber;
+        commitSha: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        commitSha: string;
+        riskScore: number;
+        reportId: string;
+        specFiles: string[];
+    }, {
+        commitSha: string;
+        riskScore: number;
+        reportId: string;
+        specFiles: string[];
+    }>;
+}, "strip", z.ZodTypeAny, {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        commitSha: string;
+        riskScore: number;
+        reportId: string;
+        specFiles: string[];
+    };
+    eventId?: string | undefined;
+}, {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        commitSha: string;
+        riskScore: number;
+        reportId: string;
+        specFiles: string[];
+    };
+    eventId?: string | undefined;
+}>;
+export declare const testCompletedSchema: z.ZodObject<{
+    eventId: z.ZodOptional<z.ZodString>;
+    eventType: z.ZodString;
+    occurredAt: z.ZodString;
+    correlationId: z.ZodString;
+    orgId: z.ZodString;
+    projectId: z.ZodString;
+} & {
+    payload: z.ZodObject<{
+        testRunId: z.ZodString;
+        status: z.ZodEnum<["passed", "failed", "skipped"]>;
+        durationMs: z.ZodOptional<z.ZodNumber>;
+    }, "strip", z.ZodTypeAny, {
+        status: "failed" | "passed" | "skipped";
+        testRunId: string;
+        durationMs?: number | undefined;
+    }, {
+        status: "failed" | "passed" | "skipped";
+        testRunId: string;
+        durationMs?: number | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        status: "failed" | "passed" | "skipped";
+        testRunId: string;
+        durationMs?: number | undefined;
+    };
+    eventId?: string | undefined;
+}, {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        status: "failed" | "passed" | "skipped";
+        testRunId: string;
+        durationMs?: number | undefined;
+    };
+    eventId?: string | undefined;
+}>;
+export declare const testFailedSchema: z.ZodObject<{
+    eventId: z.ZodOptional<z.ZodString>;
+    eventType: z.ZodString;
+    occurredAt: z.ZodString;
+    correlationId: z.ZodString;
+    orgId: z.ZodString;
+    projectId: z.ZodString;
+} & {
+    payload: z.ZodObject<{
+        testRunId: z.ZodString;
+        testId: z.ZodString;
+        status: z.ZodLiteral<"failed">;
+        error: z.ZodOptional<z.ZodString>;
+        artifacts: z.ZodOptional<z.ZodObject<{
+            screenshots: z.ZodArray<z.ZodString, "many">;
+            video: z.ZodOptional<z.ZodString>;
+            trace: z.ZodOptional<z.ZodString>;
+            har: z.ZodOptional<z.ZodString>;
+        }, "strip", z.ZodTypeAny, {
+            screenshots: string[];
+            video?: string | undefined;
+            trace?: string | undefined;
+            har?: string | undefined;
+        }, {
+            screenshots: string[];
+            video?: string | undefined;
+            trace?: string | undefined;
+            har?: string | undefined;
+        }>>;
+    }, "strip", z.ZodTypeAny, {
+        status: "failed";
+        testId: string;
+        testRunId: string;
+        artifacts?: {
+            screenshots: string[];
+            video?: string | undefined;
+            trace?: string | undefined;
+            har?: string | undefined;
+        } | undefined;
+        error?: string | undefined;
+    }, {
+        status: "failed";
+        testId: string;
+        testRunId: string;
+        artifacts?: {
+            screenshots: string[];
+            video?: string | undefined;
+            trace?: string | undefined;
+            har?: string | undefined;
+        } | undefined;
+        error?: string | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        status: "failed";
+        testId: string;
+        testRunId: string;
+        artifacts?: {
+            screenshots: string[];
+            video?: string | undefined;
+            trace?: string | undefined;
+            har?: string | undefined;
+        } | undefined;
+        error?: string | undefined;
+    };
+    eventId?: string | undefined;
+}, {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        status: "failed";
+        testId: string;
+        testRunId: string;
+        artifacts?: {
+            screenshots: string[];
+            video?: string | undefined;
+            trace?: string | undefined;
+            har?: string | undefined;
+        } | undefined;
+        error?: string | undefined;
+    };
+    eventId?: string | undefined;
+}>;
+export declare const insightGeneratedSchema: z.ZodObject<{
+    eventId: z.ZodOptional<z.ZodString>;
+    eventType: z.ZodString;
+    occurredAt: z.ZodString;
+    correlationId: z.ZodString;
+    orgId: z.ZodString;
+    projectId: z.ZodString;
+} & {
+    payload: z.ZodObject<{
+        testRunId: z.ZodString;
+        failureSummary: z.ZodString;
+        rootCause: z.ZodString;
+        suggestedFix: z.ZodString;
+        confidence: z.ZodNumber;
+        evidenceRefs: z.ZodArray<z.ZodString, "many">;
+        relatedCommit: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        testRunId: string;
+        failureSummary: string;
+        rootCause: string;
+        suggestedFix: string;
+        confidence: number;
+        evidenceRefs: string[];
+        relatedCommit?: string | undefined;
+    }, {
+        testRunId: string;
+        failureSummary: string;
+        rootCause: string;
+        suggestedFix: string;
+        confidence: number;
+        evidenceRefs: string[];
+        relatedCommit?: string | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        testRunId: string;
+        failureSummary: string;
+        rootCause: string;
+        suggestedFix: string;
+        confidence: number;
+        evidenceRefs: string[];
+        relatedCommit?: string | undefined;
+    };
+    eventId?: string | undefined;
+}, {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        testRunId: string;
+        failureSummary: string;
+        rootCause: string;
+        suggestedFix: string;
+        confidence: number;
+        evidenceRefs: string[];
+        relatedCommit?: string | undefined;
+    };
+    eventId?: string | undefined;
+}>;
+export type CommitPushed = z.infer<typeof commitPushedSchema>;
+export type TestsGenerated = z.infer<typeof testsGeneratedSchema>;
+export type TestCompleted = z.infer<typeof testCompletedSchema>;
+export type TestFailed = z.infer<typeof testFailedSchema>;
+export type InsightGenerated = z.infer<typeof insightGeneratedSchema>;
+export declare function createCommitPushed(input: {
+    repo: string;
+    branch: string;
+    commitSha: string;
+    previousCommitSha: string;
+    pusher: string;
+    isMasterBranch: boolean;
+    orgId?: string;
+    projectId?: string;
+}): {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        branch: string;
+        commitSha: string;
+        previousCommitSha: string;
+        repo: string;
+        pusher: string;
+        isMasterBranch: boolean;
+    };
+    eventId?: string | undefined;
+};
+export declare function createTestsGenerated(input: {
+    reportId: string;
+    specFiles: string[];
+    riskScore: number;
+    commitSha: string;
+    correlationId: string;
+    orgId?: string;
+    projectId?: string;
+}): {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        commitSha: string;
+        riskScore: number;
+        reportId: string;
+        specFiles: string[];
+    };
+    eventId?: string | undefined;
+};
+export declare function createTestFailed(input: {
+    testRunId: string;
+    testId: string;
+    error?: string;
+    artifacts?: {
+        screenshots: string[];
+        video?: string;
+        trace?: string;
+        har?: string;
+    };
+    correlationId: string;
+    orgId?: string;
+    projectId?: string;
+}): {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        status: "failed";
+        testId: string;
+        testRunId: string;
+        artifacts?: {
+            screenshots: string[];
+            video?: string | undefined;
+            trace?: string | undefined;
+            har?: string | undefined;
+        } | undefined;
+        error?: string | undefined;
+    };
+    eventId?: string | undefined;
+};
+export declare function createInsightGenerated(input: {
+    testRunId: string;
+    failureSummary: string;
+    rootCause: string;
+    suggestedFix: string;
+    confidence: number;
+    evidenceRefs: string[];
+    relatedCommit?: string;
+    correlationId: string;
+    orgId?: string;
+    projectId?: string;
+}): {
+    correlationId: string;
+    eventType: string;
+    occurredAt: string;
+    orgId: string;
+    projectId: string;
+    payload: {
+        testRunId: string;
+        failureSummary: string;
+        rootCause: string;
+        suggestedFix: string;
+        confidence: number;
+        evidenceRefs: string[];
+        relatedCommit?: string | undefined;
+    };
+    eventId?: string | undefined;
+};
 export * from './database.js';

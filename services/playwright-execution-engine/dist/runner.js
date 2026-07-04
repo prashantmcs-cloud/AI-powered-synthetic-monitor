@@ -1,9 +1,10 @@
-import { DatabaseRepository } from '@ai-synthetic/database';
 export async function executeSpecFiles(input) {
     const runs = [];
-    const repo = new DatabaseRepository();
+    const startTimes = {};
     for (const specFile of input.specFiles) {
         const testRunId = crypto.randomUUID();
+        const startTime = Date.now();
+        startTimes[testRunId] = startTime;
         const run = {
             id: testRunId,
             testId: specFile,
@@ -20,27 +21,13 @@ export async function executeSpecFiles(input) {
                 trace: result.trace,
                 har: result.har
             };
-            if (!result.passed) {
-                const insight = await analyzeFailure({
-                    testRunId,
-                    testId: specFile,
-                    artifacts: result.screenshots,
-                    error: result.error
-                });
-                await repo.saveRootCause(insight);
-            }
         }
         catch (error) {
             run.status = 'failed';
             run.artifacts = { screenshots: [] };
         }
+        run.durationMs = Date.now() - startTime;
         runs.push(run);
-        await repo.saveTestRun({
-            reportId: input.reportId,
-            testId: specFile,
-            specFile,
-            status: run.status
-        });
     }
     return runs;
 }
@@ -75,33 +62,4 @@ async function runPlaywrightTest(specFile, targetUrl) {
     catch (error) {
         return { passed: false, screenshots, error: String(error) };
     }
-}
-export async function analyzeFailure(context) {
-    const errorPatterns = [
-        { pattern: /timeout/i, rootCause: 'Timeout', suggestedFix: 'Increase timeout or check server health', weight: 0.15 },
-        { pattern: /selector.*not found/i, rootCause: 'Missing UI Element', suggestedFix: 'Update selector or check for UI changes', weight: 0.2 },
-        { pattern: /network/i, rootCause: 'Network Issue', suggestedFix: 'Check network configuration', weight: 0.1 },
-        { pattern: /authentication/i, rootCause: 'Auth Failure', suggestedFix: 'Verify credentials', weight: 0.12 }
-    ];
-    let rootCause = 'Unknown failure';
-    let suggestedFix = 'Review test logs';
-    let confidence = 0.6;
-    if (context.error) {
-        for (const { pattern, rootCause: rc, suggestedFix: fix, weight } of errorPatterns) {
-            if (pattern.test(context.error)) {
-                rootCause = rc;
-                suggestedFix = fix;
-                confidence = 0.75 + weight;
-                break;
-            }
-        }
-    }
-    return {
-        testRunId: context.testRunId,
-        failureSummary: `Test ${context.testId} failed`,
-        rootCause,
-        suggestedFix,
-        confidence,
-        evidenceRefs: context.artifacts
-    };
 }

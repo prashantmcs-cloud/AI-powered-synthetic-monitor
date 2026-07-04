@@ -1,5 +1,6 @@
 import { type TestRun } from '@ai-synthetic/shared-types';
-export { executeSpecFiles, analyzeFailure } from './runner.js';
+import { executeSpecFiles } from './runner.js';
+export { executeSpecFiles };
 export type { ExecutionInput, FailureContext } from './runner.js';
 export declare function createFailureInsight(testRun: TestRun): {
     testRunId: string;
@@ -25,3 +26,4 @@ export declare function emitExecutionEvent(input: {
     eventId?: string | undefined;
     payload?: unknown;
 };
+export * from './runner.js';

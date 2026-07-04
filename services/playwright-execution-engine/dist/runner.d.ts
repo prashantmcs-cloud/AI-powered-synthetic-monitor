@@ -1,4 +1,4 @@
-import type { TestRun, RootCauseInsight } from '@ai-synthetic/shared-types';
+import type { TestRun } from '@ai-synthetic/shared-types';
 export interface ExecutionInput {
     reportId: string;
     specFiles: string[];
@@ -12,4 +12,3 @@ export interface FailureContext {
     error?: string;
 }
 export declare function executeSpecFiles(input: ExecutionInput): Promise<TestRun[]>;
-export declare function analyzeFailure(context: FailureContext): Promise<Omit<RootCauseInsight, 'id'>>;

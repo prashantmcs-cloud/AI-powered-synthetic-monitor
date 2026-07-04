@@ -1,5 +1,6 @@
 import { createBaseEnvelope, createRootCauseInsight } from '@ai-synthetic/shared-types';
-export { executeSpecFiles, analyzeFailure } from './runner.js';
+import { executeSpecFiles } from './runner.js';
+export { executeSpecFiles };
 export function createFailureInsight(testRun) {
     return createRootCauseInsight({
         testRunId: testRun.id ?? '',
@@ -19,3 +20,4 @@ export function emitExecutionEvent(input) {
         payload: input
     });
 }
+export * from './runner.js';

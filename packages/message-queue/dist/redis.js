@@ -13,13 +13,11 @@ export async function enqueue(type, payload) {
         payload,
         timestamp: new Date().toISOString()
     };
-    const queueName = QUEUE_NAMES[type];
-    await redis.lpush(queueName, JSON.stringify(message));
+    await redis.lpush(type, JSON.stringify(message));
     return message.id;
 }
 export async function dequeue(type) {
-    const queueName = QUEUE_NAMES[type];
-    const data = await redis.rpop(queueName);
+    const data = await redis.rpop(type);
     return data ? JSON.parse(data) : null;
 }
 export async function subscribe(channel, callback) {
