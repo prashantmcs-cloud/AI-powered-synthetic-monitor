@@ -116,34 +116,34 @@ async function runPlaywrightTest(specFile: string, targetUrl?: string): Promise<
 }
 
 export async function analyzeFailure(context: FailureContext): Promise<Omit<RootCauseInsight, 'id'>> {
-  const errorPatterns = [
-    { pattern: /timeout/i, rootCause: 'Timeout', suggestedFix: 'Increase timeout or check server health', weight: 0.15 },
-    { pattern: /selector.*not found/i, rootCause: 'Missing UI Element', suggestedFix: 'Update selector or check for UI changes', weight: 0.2 },
-    { pattern: /network/i, rootCause: 'Network Issue', suggestedFix: 'Check network configuration', weight: 0.1 },
-    { pattern: /authentication/i, rootCause: 'Auth Failure', suggestedFix: 'Verify credentials', weight: 0.12 }
-  ];
-  
-  let rootCause = 'Unknown failure';
-  let suggestedFix = 'Review test logs';
-  let confidence = 0.6;
-  
-  if (context.error) {
-    for (const { pattern, rootCause: rc, suggestedFix: fix, weight } of errorPatterns) {
-      if (pattern.test(context.error)) {
-        rootCause = rc;
-        suggestedFix = fix;
-        confidence = 0.75 + weight;
-        break;
-      }
-    }
-  }
-  
-  return {
-    testId: context.testId,
-    failureSummary: `Test ${context.testId} failed`,
-    rootCause,
-    suggestedFix,
-    confidence,
-    evidenceRefs: context.artifacts
-  };
-}
+   const errorPatterns = [
+     { pattern: /timeout/i, rootCause: 'Timeout', suggestedFix: 'Increase timeout or check server health', weight: 0.15 },
+     { pattern: /selector.*not found/i, rootCause: 'Missing UI Element', suggestedFix: 'Update selector or check for UI changes', weight: 0.2 },
+     { pattern: /network/i, rootCause: 'Network Issue', suggestedFix: 'Check network configuration', weight: 0.1 },
+     { pattern: /authentication/i, rootCause: 'Auth Failure', suggestedFix: 'Verify credentials', weight: 0.12 }
+   ];
+   
+   let rootCause = 'Unknown failure';
+   let suggestedFix = 'Review test logs';
+   let confidence = 0.6;
+   
+   if (context.error) {
+     for (const { pattern, rootCause: rc, suggestedFix: fix, weight } of errorPatterns) {
+       if (pattern.test(context.error)) {
+         rootCause = rc;
+         suggestedFix = fix;
+         confidence = 0.75 + weight;
+         break;
+       }
+     }
+   }
+   
+   return {
+     testRunId: context.testRunId,
+     failureSummary: `Test ${context.testId} failed`,
+     rootCause,
+     suggestedFix,
+     confidence,
+     evidenceRefs: context.artifacts
+   };
+ }

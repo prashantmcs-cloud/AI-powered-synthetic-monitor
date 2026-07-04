@@ -35,30 +35,32 @@ export const deploymentIntelligenceReportSchema = z.object({
 export type DeploymentIntelligenceReport = z.infer<typeof deploymentIntelligenceReportSchema>;
 
 export const testRunSchema = z.object({
-  id: z.string().uuid().optional(),
-  testId: z.string(),
-  status: z.enum(['queued', 'running', 'passed', 'failed']),
-  artifacts: z.object({
-    screenshots: z.array(z.string()),
-    video: z.string().optional(),
-    trace: z.string().optional(),
-    har: z.string().optional()
-  }).default({ screenshots: [] }),
-  createdAt: z.string().datetime().optional()
-});
+   id: z.string().uuid().optional(),
+   testId: z.string(),
+   status: z.enum(['queued', 'running', 'passed', 'failed']),
+   artifacts: z.object({
+     screenshots: z.array(z.string()),
+     video: z.string().optional(),
+     trace: z.string().optional(),
+     har: z.string().optional()
+   }).default({ screenshots: [] }),
+   createdAt: z.string().datetime().optional(),
+   durationMs: z.number().optional()
+ });
 
 export type TestRun = z.infer<typeof testRunSchema>;
 
 export const rootCauseInsightSchema = z.object({
-  id: z.string().uuid().optional(),
-  testId: z.string(),
-  failureSummary: z.string(),
-  rootCause: z.string(),
-  suggestedFix: z.string(),
-  confidence: z.number().min(0).max(1),
-  relatedCommit: z.string().optional(),
-  evidenceRefs: z.array(z.string())
-});
+   id: z.string().uuid().optional(),
+   testRunId: z.string().uuid(),
+   testId: z.string().optional(),
+   failureSummary: z.string(),
+   rootCause: z.string(),
+   suggestedFix: z.string(),
+   confidence: z.number().min(0).max(1),
+   relatedCommit: z.string().optional(),
+   evidenceRefs: z.array(z.string())
+ });
 
 export type RootCauseInsight = z.infer<typeof rootCauseInsightSchema>;
 
@@ -103,9 +105,18 @@ export function createDeploymentIntelligenceReport(input: Omit<DeploymentIntelli
   });
 }
 
-export function createRootCauseInsight(input: RootCauseInsight): RootCauseInsight {
-  return rootCauseInsightSchema.parse(input);
-}
+export function createRootCauseInsight(input: {
+   testRunId: string;
+   testId?: string;
+   failureSummary: string;
+   rootCause: string;
+   suggestedFix: string;
+   confidence: number;
+   evidenceRefs: string[];
+   relatedCommit?: string;
+ }): RootCauseInsight {
+   return rootCauseInsightSchema.parse(input);
+ }
 
 export function createAiTestSpec(input: {
   testId: string;

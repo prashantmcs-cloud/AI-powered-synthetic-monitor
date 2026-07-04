@@ -31,13 +31,13 @@ export function analyzeFailure(context: FailureContext): Omit<RootCauseInsight, 
     }
   }
   
-  return {
-    testId: context.testId,
-    failureSummary: `Test ${context.testId} failed during execution`,
-    rootCause,
-    suggestedFix,
-    confidence,
-    relatedCommit: context.relatedCommit,
-    evidenceRefs: context.artifacts
-  };
+return {
+     testRunId: context.testRunId,
+     failureSummary: `Test ${context.testId} failed during execution`,
+     rootCause,
+     suggestedFix,
+     confidence,
+     relatedCommit: context.relatedCommit,
+     evidenceRefs: context.artifacts
+   };
 }

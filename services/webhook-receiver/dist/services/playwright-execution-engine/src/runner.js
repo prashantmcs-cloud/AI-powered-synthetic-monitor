@@ -1,23 +1,25 @@
-import { test as playwrightTest } from '@playwright/test';
 import { DatabaseRepository } from '@ai-synthetic/database';
 export async function executeSpecFiles(input) {
     const runs = [];
+    const repo = new DatabaseRepository();
     for (const specFile of input.specFiles) {
         const testRunId = crypto.randomUUID();
         const run = {
             id: testRunId,
             testId: specFile,
             status: 'running',
-            artifacts: { screenshots: [], video: undefined, trace: undefined, har: undefined },
+            artifacts: { screenshots: [] },
             createdAt: new Date().toISOString()
         };
         try {
             const result = await runPlaywrightTest(specFile, input.targetUrl);
             run.status = result.passed ? 'passed' : 'failed';
-            run.artifacts.screenshots = result.screenshots;
-            run.artifacts.video = result.video;
-            run.artifacts.trace = result.trace;
-            run.artifacts.har = result.har;
+            run.artifacts = {
+                screenshots: result.screenshots,
+                video: result.video,
+                trace: result.trace,
+                har: result.har
+            };
             if (!result.passed) {
                 const insight = await analyzeFailure({
                     testRunId,
@@ -25,21 +27,20 @@ export async function executeSpecFiles(input) {
                     artifacts: result.screenshots,
                     error: result.error
                 });
-                await DatabaseRepository.saveRootCause(insight);
+                await repo.saveRootCause(insight);
             }
         }
         catch (error) {
             run.status = 'failed';
-            run.artifacts = { screenshots: [], video: undefined, trace: undefined, har: undefined };
+            run.artifacts = { screenshots: [] };
         }
         runs.push(run);
-        await DatabaseRepository.saveTestRun({
+        await repo.saveTestRun({
             reportId: input.reportId,
             testId: specFile,
             specFile,
             status: run.status
         });
-        await DatabaseRepository.updateTestRunStatus(testRunId, run.status, run.durationMs);
     }
     return runs;
 }
@@ -47,7 +48,8 @@ async function runPlaywrightTest(specFile, targetUrl) {
     const screenshots = [];
     const artifactsDir = `/artifacts/${crypto.randomUUID()}`;
     try {
-        const browser = await playwrightTest.chromium.launch({
+        const chromium = await import('playwright').then(p => p.chromium);
+        const browser = await chromium.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
@@ -62,8 +64,6 @@ async function runPlaywrightTest(specFile, targetUrl) {
             screenshots.push(`${artifactsDir}/start.png`);
             await page.screenshot({ path: `${artifactsDir}/start.png` });
         }
-        const startTime = Date.now();
-        await page.waitForTimeout(2000);
         const passed = true;
         const videoPath = `${artifactsDir}/video.webm`;
         const tracePath = `${artifactsDir}/trace.zip`;
@@ -78,29 +78,30 @@ async function runPlaywrightTest(specFile, targetUrl) {
 }
 export async function analyzeFailure(context) {
     const errorPatterns = [
-        { pattern: /timeout/i, rootCause: 'Page load timeout', fix: 'Increase timeout or check server health' },
-        { pattern: /selector.*not found/i, rootCause: 'Missing UI element', fix: 'Update selector or check for UI changes' },
-        { pattern: /network/i, rootCause: 'Network connectivity issue', fix: 'Check network configuration and endpoint availability' },
-        { pattern: /authentication/i, rootCause: 'Authentication failure', fix: 'Verify credentials and auth flow' }
+        { pattern: /timeout/i, rootCause: 'Timeout', suggestedFix: 'Increase timeout or check server health', weight: 0.15 },
+        { pattern: /selector.*not found/i, rootCause: 'Missing UI Element', suggestedFix: 'Update selector or check for UI changes', weight: 0.2 },
+        { pattern: /network/i, rootCause: 'Network Issue', suggestedFix: 'Check network configuration', weight: 0.1 },
+        { pattern: /authentication/i, rootCause: 'Auth Failure', suggestedFix: 'Verify credentials', weight: 0.12 }
     ];
     let rootCause = 'Unknown failure';
-    let suggestedFix = 'Review test logs for details';
+    let suggestedFix = 'Review test logs';
+    let confidence = 0.6;
     if (context.error) {
-        for (const { pattern, rootCause: rc, fix } of errorPatterns) {
+        for (const { pattern, rootCause: rc, suggestedFix: fix, weight } of errorPatterns) {
             if (pattern.test(context.error)) {
                 rootCause = rc;
                 suggestedFix = fix;
+                confidence = 0.75 + weight;
                 break;
             }
         }
     }
     return {
         testRunId: context.testRunId,
-        testId: context.testId,
-        failureSummary: `Test ${context.testId} failed during execution`,
+        failureSummary: `Test ${context.testId} failed`,
         rootCause,
         suggestedFix,
-        confidence: 0.85,
+        confidence,
         evidenceRefs: context.artifacts
     };
 }

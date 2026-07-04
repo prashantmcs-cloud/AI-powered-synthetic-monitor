@@ -2,12 +2,13 @@ import { analyzeCommitChanges, generatePlaywrightTests, writeSpecFiles } from '.
 import { DatabaseRepository } from '@ai-synthetic/database';
 
 async function main() {
-  const args = process.argv.slice(2);
-  const command = args[0];
-  
-  if (command === 'analyze') {
-    const commitSha = args[1];
-    const previousCommitSha = args[2] || process.env.PREVIOUS_COMMIT_SHA;
+   const args = process.argv.slice(2);
+   const command = args[0];
+   const repo = new DatabaseRepository();
+   
+   if (command === 'analyze') {
+     const commitSha = args[1];
+     const previousCommitSha = args[2] || process.env.PREVIOUS_COMMIT_SHA;
     
     if (!commitSha) {
       console.error('Usage: analyze <commitSha> [previousCommitSha]');
@@ -42,7 +43,7 @@ async function main() {
     
     writeSpecFiles(specs);
     
-    await DatabaseRepository.saveDeploymentReport({
+    await repo.saveDeploymentReport({
       commitSha,
       previousCommitSha,
       buildId: buildComparison.buildId,

@@ -5,11 +5,11 @@ export interface ExecutionInput {
     riskScore: number;
     targetUrl?: string;
 }
-export declare function executeSpecFiles(input: ExecutionInput): Promise<TestRun[]>;
 export interface FailureContext {
     testRunId: string;
     testId: string;
     artifacts: string[];
     error?: string;
 }
-export declare function analyzeFailure(context: FailureContext): Promise<Omit<RootCauseInsight, 'id' | 'createdAt'>>;
+export declare function executeSpecFiles(input: ExecutionInput): Promise<TestRun[]>;
+export declare function analyzeFailure(context: FailureContext): Promise<Omit<RootCauseInsight, 'id'>>;

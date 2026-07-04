@@ -1,4 +1,5 @@
-import Redis from 'ioredis';
+import RedisLib from 'ioredis';
+const Redis = RedisLib.default || RedisLib;
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 export const QUEUE_NAMES = {
     TEST_EXECUTION: 'test-execution',
@@ -24,12 +25,11 @@ export async function dequeue(type) {
 export async function subscribe(channel, callback) {
     const sub = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
     await sub.subscribe(channel);
-    sub.on('message', (_channel, message) => {
+    sub.on('message', (_ch, message) => {
         callback(JSON.parse(message));
     });
 }
 export async function publish(channel, data) {
     await redis.publish(channel, JSON.stringify(data));
 }
-redis.on('error', (err) => console.error('Redis error:', err));
 export { redis };

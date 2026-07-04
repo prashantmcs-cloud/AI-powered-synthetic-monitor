@@ -34,11 +34,13 @@ export const testRunSchema = z.object({
         trace: z.string().optional(),
         har: z.string().optional()
     }).default({ screenshots: [] }),
-    createdAt: z.string().datetime().optional()
+    createdAt: z.string().datetime().optional(),
+    durationMs: z.number().optional()
 });
 export const rootCauseInsightSchema = z.object({
     id: z.string().uuid().optional(),
-    testId: z.string(),
+    testRunId: z.string().uuid(),
+    testId: z.string().optional(),
     failureSummary: z.string(),
     rootCause: z.string(),
     suggestedFix: z.string(),

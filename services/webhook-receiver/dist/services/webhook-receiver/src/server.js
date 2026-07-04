@@ -18,6 +18,7 @@ export function startWebhookServer() {
             body += chunk;
         });
         req.on('end', async () => {
+            const repo = new DatabaseRepository();
             try {
                 const payload = JSON.parse(body || '{}');
                 const envelope = processGitHubPush(payload);
@@ -36,7 +37,7 @@ export function startWebhookServer() {
                         bundleSize: 210000,
                         dependencyDelta: []
                     });
-                    await DatabaseRepository.saveDeploymentReport({
+                    await repo.saveDeploymentReport({
                         commitSha: report.commitSha,
                         previousCommitSha: report.previousCommitSha,
                         buildId: report.buildId,
@@ -60,7 +61,7 @@ export function startWebhookServer() {
                                 artifacts: run.artifacts.screenshots,
                                 relatedCommit: report.commitSha
                             });
-                            await DatabaseRepository.saveRootCause(insight);
+                            await repo.saveRootCause(insight);
                         }
                     }
                     await enqueue('TEST_EXECUTION', { reportId: report.id, runs });

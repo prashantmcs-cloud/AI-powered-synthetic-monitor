@@ -1,15 +1,15 @@
 import { type TestRun } from '@ai-synthetic/shared-types';
-import { executeSpecFiles, analyzeFailure } from './runner.js';
-export { executeSpecFiles, analyzeFailure };
-export type { ExecutionInput } from './runner.js';
+export { executeSpecFiles, analyzeFailure } from './runner.js';
+export type { ExecutionInput, FailureContext } from './runner.js';
 export declare function createFailureInsight(testRun: TestRun): {
-    testId: string;
+    testRunId: string;
     failureSummary: string;
     rootCause: string;
     suggestedFix: string;
     confidence: number;
     evidenceRefs: string[];
     id?: string | undefined;
+    testId?: string | undefined;
     relatedCommit?: string | undefined;
 };
 export declare function emitExecutionEvent(input: {

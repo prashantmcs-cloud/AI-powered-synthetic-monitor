@@ -3,6 +3,7 @@ import { DatabaseRepository } from '@ai-synthetic/database';
 async function main() {
     const args = process.argv.slice(2);
     const command = args[0];
+    const repo = new DatabaseRepository();
     if (command === 'analyze') {
         const commitSha = args[1];
         const previousCommitSha = args[2] || process.env.PREVIOUS_COMMIT_SHA;
@@ -34,7 +35,7 @@ async function main() {
         const analysis = analyzeCommitChanges(mockComparison);
         const specs = generatePlaywrightTests(mockComparison, buildComparison, analysis.affectedFlows);
         writeSpecFiles(specs);
-        await DatabaseRepository.saveDeploymentReport({
+        await repo.saveDeploymentReport({
             commitSha,
             previousCommitSha,
             buildId: buildComparison.buildId,

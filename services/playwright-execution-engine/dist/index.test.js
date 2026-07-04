@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { executeSpecFiles, createFailureInsight } from './index.js';
-test('executes generated specs and produces artifacts', () => {
-    const runs = executeSpecFiles({
+test('executes generated specs and produces artifacts', async () => {
+    const runs = await executeSpecFiles({
         reportId: 'report-1',
         specFiles: ['tests/generated/login.spec.ts'],
         riskScore: 0.8

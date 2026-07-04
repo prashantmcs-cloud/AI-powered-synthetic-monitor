@@ -9,21 +9,22 @@ import { enqueue } from '@ai-synthetic/message-queue';
 const port = Number(process.env.PORT || 3000);
 
 export function startWebhookServer() {
-  const server = createServer(async (req, res) => {
-    if (req.method !== 'POST') {
-      res.writeHead(404, { 'content-type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Not found' }));
-      return;
-    }
+   const server = createServer(async (req, res) => {
+     if (req.method !== 'POST') {
+       res.writeHead(404, { 'content-type': 'application/json' });
+       res.end(JSON.stringify({ error: 'Not found' }));
+       return;
+     }
 
-    let body = '';
-    req.on('data', (chunk) => {
-      body += chunk;
-    });
-    req.on('end', async () => {
-      try {
-        const payload = JSON.parse(body || '{}');
-        const envelope = processGitHubPush(payload);
+     let body = '';
+     req.on('data', (chunk) => {
+       body += chunk;
+     });
+     req.on('end', async () => {
+       const repo = new DatabaseRepository();
+       try {
+         const payload = JSON.parse(body || '{}');
+         const envelope = processGitHubPush(payload);
 
         if (envelope.eventType === 'commit.pushed') {
           const commitPayload = envelope.payload as { 
@@ -49,7 +50,7 @@ export function startWebhookServer() {
             dependencyDelta: []
           });
 
-          await DatabaseRepository.saveDeploymentReport({
+          await repo.saveDeploymentReport({
             commitSha: report.commitSha,
             previousCommitSha: report.previousCommitSha,
             buildId: report.buildId!,
@@ -75,7 +76,7 @@ export function startWebhookServer() {
                 artifacts: run.artifacts.screenshots,
                 relatedCommit: report.commitSha
               });
-              await DatabaseRepository.saveRootCause(insight);
+              await repo.saveRootCause(insight);
             }
           }
 

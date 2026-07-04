@@ -10,5 +10,8 @@
   "dependencies": {
     "@ai-synthetic/shared-types": "file:../../packages/shared-types",
     "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.20.0"
   }
 }

@@ -1,15 +1,113 @@
-import type { Commit, Build, DeploymentReport, TestRun, TestArtifact, RootCauseInsight } from '@ai-synthetic/shared-types';
 export declare class DatabaseRepository {
-    static saveCommit(commit: Omit<Commit, 'id' | 'createdAt'>): Promise<Commit>;
-    static getCommit(commitSha: string): Promise<Commit | null>;
-    static saveBuild(build: Omit<Build, 'id' | 'createdAt'>): Promise<Build>;
-    static saveDeploymentReport(report: Omit<DeploymentReport, 'id' | 'createdAt'>): Promise<DeploymentReport>;
-    static saveTestRun(run: Omit<TestRun, 'id' | 'startedAt' | 'completedAt'>): Promise<TestRun>;
-    static updateTestRunStatus(testRunId: string, status: 'queued' | 'running' | 'passed' | 'failed' | 'skipped', durationMs?: number): Promise<void>;
-    static saveArtifact(artifact: Omit<TestArtifact, 'id' | 'timestamp'>): Promise<TestArtifact>;
-    static saveRootCause(insight: Omit<RootCauseInsight, 'id' | 'createdAt'>): Promise<RootCauseInsight>;
-    static getReports(limit?: number): Promise<DeploymentReport[]>;
-    static getTestRuns(reportId: string): Promise<TestRun[]>;
-    static getArtifacts(testRunId: string): Promise<TestArtifact[]>;
-    static getRootCause(testRunId: string): Promise<RootCauseInsight | null>;
+    private pool;
+    saveCommit(commit: {
+        repository: string;
+        branch: string;
+        commitSha: string;
+        previousCommitSha?: string;
+        author: string;
+        message: string;
+        timestamp: string;
+    }): Promise<{
+        id: any;
+        createdAt: any;
+        repository: string;
+        branch: string;
+        commitSha: string;
+        previousCommitSha?: string;
+        author: string;
+        message: string;
+        timestamp: string;
+    }>;
+    saveBuild(build: {
+        commitId: string;
+        buildId: string;
+        previousBuildId?: string;
+        status: 'success' | 'failed' | 'pending';
+        bundleSize: number;
+        dependencyDelta: string[];
+    }): Promise<{
+        id: any;
+        createdAt: any;
+        commitId: string;
+        buildId: string;
+        previousBuildId?: string;
+        status: "success" | "failed" | "pending";
+        bundleSize: number;
+        dependencyDelta: string[];
+    }>;
+    saveDeploymentReport(report: {
+        commitSha: string;
+        previousCommitSha?: string;
+        buildId: string;
+        previousBuildId?: string;
+        riskScore: number;
+        affectedFlows: string[];
+        rationale: string;
+        generatedSpecFiles: string[];
+        correlationId: string;
+    }): Promise<{
+        id: any;
+        createdAt: any;
+        commitSha: string;
+        previousCommitSha?: string;
+        buildId: string;
+        previousBuildId?: string;
+        riskScore: number;
+        affectedFlows: string[];
+        rationale: string;
+        generatedSpecFiles: string[];
+        correlationId: string;
+    }>;
+    saveTestRun(run: {
+        reportId: string;
+        testId: string;
+        specFile: string;
+        status: 'queued' | 'running' | 'passed' | 'failed' | 'skipped';
+        durationMs?: number;
+    }): Promise<{
+        id: any;
+        startedAt: any;
+        completedAt: undefined;
+        reportId: string;
+        testId: string;
+        specFile: string;
+        status: "queued" | "running" | "passed" | "failed" | "skipped";
+        durationMs?: number;
+    }>;
+    updateTestRunStatus(testRunId: string, status: 'queued' | 'running' | 'passed' | 'failed' | 'skipped', durationMs?: number): Promise<void>;
+    saveArtifact(artifact: {
+        testRunId: string;
+        type: 'screenshot' | 'video' | 'trace' | 'har';
+        url: string;
+    }): Promise<{
+        id: any;
+        timestamp: any;
+        testRunId: string;
+        type: "screenshot" | "video" | "trace" | "har";
+        url: string;
+    }>;
+    saveRootCause(insight: {
+        testRunId: string;
+        failureSummary: string;
+        rootCause: string;
+        suggestedFix: string;
+        confidence: number;
+        evidenceRefs: string[];
+        relatedCommit?: string;
+    }): Promise<{
+        id: any;
+        createdAt: any;
+        testRunId: string;
+        failureSummary: string;
+        rootCause: string;
+        suggestedFix: string;
+        confidence: number;
+        evidenceRefs: string[];
+        relatedCommit?: string;
+    }>;
+    getReports(limit?: number): Promise<any[]>;
+    getTestRuns(reportId: string): Promise<any[]>;
+    getArtifacts(testRunId: string): Promise<any[]>;
+    getRootCause(testRunId: string): Promise<any | null>;
 }
