@@ -4,6 +4,10 @@ const Redis = RedisLib.default || RedisLib;
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
+redis.on('error', (err) => {
+  console.error('[Redis] Connection error:', err.message || err);
+});
+
 export const QUEUE_NAMES = {
    TEST_EXECUTION: 'test-execution',
    ROOT_CAUSE: 'root-cause',
@@ -35,12 +39,15 @@ export async function dequeue(type: string): Promise<QueueMessage | null> {
  }
 
 export async function subscribe(channel: string, callback: (data: unknown) => void): Promise<void> {
-   const sub = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-   await sub.subscribe(channel);
-   sub.on('message', (_ch: string, message: string) => {
-     callback(JSON.parse(message));
-   });
- }
+    const sub = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+    sub.on('error', (err) => {
+      console.error('[Redis] Subscriber connection error:', err.message || err);
+    });
+    await sub.subscribe(channel);
+    sub.on('message', (_ch: string, message: string) => {
+      callback(JSON.parse(message));
+    });
+  }
 
 export async function publish(channel: string, data: unknown): Promise<void> {
    await redis.publish(channel, JSON.stringify(data));

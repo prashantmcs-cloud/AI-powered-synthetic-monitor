@@ -70,6 +70,7 @@ npm test
 
 # Start services (requires PostgreSQL and Redis)
 npm run dev:webhook
+
 npm run dev:api
 npm run dev:ui
 ```
