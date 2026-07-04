@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: root-cause-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: root-cause-agent
+  template:
+    metadata:
+      labels:
+        app: root-cause-agent
+    spec:
+      containers:
+        - name: root-cause-agent
+          image: ai-synthetic/root-cause-agent:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: root-cause-agent
+spec:
+  selector:
+    app: root-cause-agent
+  ports:
+    - port: 80
+      targetPort: 3000

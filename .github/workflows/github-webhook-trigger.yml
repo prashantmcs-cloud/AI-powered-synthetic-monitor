@@ -1,0 +1,16 @@
+name: GitHub webhook trigger
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  notify-webhook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger webhook receiver
+        run: |
+          curl --fail --silent --show-error -X POST "${{ secrets.WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"${{ github.ref }}","repository":{"full_name":"${{ github.repository }}"},"head_commit":{"id":"${{ github.sha }}"},"pusher":{"name":"${{ github.actor }}"},"before":"${{ github.event.before }}"}'

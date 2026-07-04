@@ -1,0 +1,19 @@
+import { createRootCauseInsight, type RootCauseInsight } from '@ai-synthetic/shared-types';
+
+export interface FailureContext {
+  testId: string;
+  artifacts: string[];
+  relatedCommit?: string;
+}
+
+export function analyzeFailure(context: FailureContext): RootCauseInsight {
+  return createRootCauseInsight({
+    testId: context.testId,
+    failureSummary: 'The Playwright flow failed during automation execution.',
+    rootCause: 'A mismatch between the expected UI state and the live application state was detected.',
+    suggestedFix: 'Update the generated spec and verify the impacted page components before re-running.',
+    confidence: 0.84,
+    relatedCommit: context.relatedCommit,
+    evidenceRefs: context.artifacts
+  });
+}

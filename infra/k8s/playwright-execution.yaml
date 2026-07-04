@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playwright-execution-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: playwright-execution-engine
+  template:
+    metadata:
+      labels:
+        app: playwright-execution-engine
+    spec:
+      containers:
+        - name: playwright-execution-engine
+          image: ai-synthetic/playwright-execution-engine:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: playwright-execution-engine
+spec:
+  selector:
+    app: playwright-execution-engine
+  ports:
+    - port: 80
+      targetPort: 3000

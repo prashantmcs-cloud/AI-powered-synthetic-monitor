@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-intelligence-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deployment-intelligence-agent
+  template:
+    metadata:
+      labels:
+        app: deployment-intelligence-agent
+    spec:
+      containers:
+        - name: deployment-intelligence-agent
+          image: ai-synthetic/deployment-intelligence-agent:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deployment-intelligence-agent
+spec:
+  selector:
+    app: deployment-intelligence-agent
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-receiver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-receiver
+  template:
+    metadata:
+      labels:
+        app: webhook-receiver
+    spec:
+      containers:
+        - name: webhook-receiver
+          image: ai-synthetic/webhook-receiver:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-receiver
+spec:
+  selector:
+    app: webhook-receiver
+  ports:
+    - port: 80
+      targetPort: 3000

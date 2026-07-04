@@ -1,0 +1,10 @@
+replicaCount: 1
+services:
+  deploymentIntelligence:
+    image: ai-synthetic/deployment-intelligence-agent:latest
+  playwrightExecution:
+    image: ai-synthetic/playwright-execution-engine:latest
+  rootCause:
+    image: ai-synthetic/root-cause-agent:latest
+  webUi:
+    image: ai-synthetic/web-ui:latest

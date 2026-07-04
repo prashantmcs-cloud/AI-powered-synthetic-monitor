@@ -1,0 +1,21 @@
+{
+  "name": "ai-powered-synthetic-monitor",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @ai-synthetic/shared-types && npm run build --workspaces --if-present",
+    "test": "npm run build --workspace @ai-synthetic/shared-types && node --import tsx --test packages/shared-types/src/**/*.test.ts services/deployment-intelligence-agent/src/**/*.test.ts services/playwright-execution-engine/src/**/*.test.ts services/root-cause-agent/src/**/*.test.ts services/webhook-receiver/src/**/*.test.ts",
+    "dev:web": "node apps/web-ui/server.mjs",
+    "dev:webhook": "node services/webhook-receiver/dist/server.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.3"
+  }
+}
