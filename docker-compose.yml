@@ -1,18 +1,82 @@
 version: '3.9'
+
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ai_synthetic
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: aisynthetic123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  api-gateway:
+    build: .
+    command: node services/api-gateway/dist/index.js
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgresql://postgres:aisynthetic123@postgres:5432/ai_synthetic
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
   webhook-receiver:
-    build:
-      context: .
-      dockerfile: services/webhook-receiver/Dockerfile
+    build: .
+    command: node services/webhook-receiver/dist/server.js
     ports:
       - "3000:3000"
     environment:
-      PORT: 3000
+      DATABASE_URL: postgresql://postgres:aisynthetic123@postgres:5432/ai_synthetic
+      REDIS_URL: redis://redis:6379
+      GITHUB_WEBHOOK_SECRET: default-secret
+    depends_on:
+      - api-gateway
+
+  playwright-execution-engine:
+    build: .
+    command: node services/worker/dist/index.js
+    environment:
+      DATABASE_URL: postgresql://postgres:aisynthetic123@postgres:5432/ai_synthetic
+      REDIS_URL: redis://redis:6379
+      PLAYWRIGHT_HEADLESS: "true"
+    volumes:
+      - artifacts:/artifacts
+    depends_on:
+      - redis
+
   web-ui:
     build:
-      context: .
-      dockerfile: apps/web-ui/Dockerfile
+      context: apps/web-ui
+      dockerfile: Dockerfile
     ports:
       - "3001:3000"
     environment:
-      PORT: 3000
+      VITE_API_URL: http://localhost:8080
+
+volumes:
+  postgres_data:
+  redis_data:
+  artifacts:
+
+networks:
+  default:
+    name: ai-synthetic-net

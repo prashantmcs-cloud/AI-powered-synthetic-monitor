@@ -1,39 +1,21 @@
 import { createBaseEnvelope, createRootCauseInsight, type TestRun } from '@ai-synthetic/shared-types';
+import { executeSpecFiles } from './runner.js';
 
-export interface ExecutionInput {
-  reportId: string;
-  specFiles: string[];
-  riskScore: number;
-}
-
-export function executeSpecFiles(input: ExecutionInput): TestRun[] {
-  return input.specFiles.map((specFile, index) => ({
-    id: `run-${index + 1}`,
-    testId: specFile,
-    status: input.riskScore > 0.7 ? 'failed' : 'passed',
-    artifacts: {
-      screenshots: [`artifacts/${specFile.replace(/\W+/g, '-')}-start.png`],
-      video: `artifacts/${specFile.replace(/\W+/g, '-')}.webm`,
-      trace: `artifacts/${specFile.replace(/\W+/g, '-')}.zip`,
-      har: `artifacts/${specFile.replace(/\W+/g, '-')}.har`
-    },
-    createdAt: new Date().toISOString()
-  }));
-}
+export { executeSpecFiles, analyzeFailure } from './runner.js';
+export type { ExecutionInput, FailureContext } from './runner.js';
 
 export function createFailureInsight(testRun: TestRun) {
   return createRootCauseInsight({
     testId: testRun.testId,
     failureSummary: 'The generated synthetic check failed during execution.',
-    rootCause: 'The Playwright flow likely hit an unexpected UI state or environment issue.',
-    suggestedFix: 'Review the impacted flow and update the generated spec to match the latest UI contract.',
+    rootCause: 'Unexpected UI state or environment issue.',
+    suggestedFix: 'Review the impacted flow and update the generated spec.',
     confidence: 0.78,
-    relatedCommit: 'latest',
-    evidenceRefs: testRun.artifacts.screenshots.concat(testRun.artifacts.video ?? [])
+    evidenceRefs: testRun.artifacts.screenshots
   });
 }
 
-export function emitExecutionEvent(input: ExecutionInput) {
+export function emitExecutionEvent(input: { reportId: string; specFiles: string[]; riskScore: number }) {
   return createBaseEnvelope({
     eventType: 'tests.generated',
     orgId: 'acme',

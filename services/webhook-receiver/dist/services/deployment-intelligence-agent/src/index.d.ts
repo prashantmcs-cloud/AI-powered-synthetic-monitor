@@ -1,4 +1,5 @@
 import { type DeploymentIntelligenceReport } from '@ai-synthetic/shared-types';
+import { analyzeCommitChanges, generatePlaywrightTests } from './ai-analyzer.js';
 export interface CommitEvent {
     repo: string;
     branch: string;
@@ -14,7 +15,4 @@ export interface BuildSnapshot {
     dependencyDelta: string[];
 }
 export declare function analyzeDeploymentIntelligence(event: CommitEvent, build: BuildSnapshot): DeploymentIntelligenceReport;
-export declare function generateSpecFiles(event: CommitEvent, risk: {
-    riskScore: number;
-    affectedFlows: string[];
-}): string[];
+export { analyzeCommitChanges, generatePlaywrightTests };

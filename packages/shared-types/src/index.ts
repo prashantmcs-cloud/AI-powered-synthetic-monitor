@@ -21,11 +21,11 @@ export const riskAssessmentSchema = z.object({
 export type RiskAssessment = z.infer<typeof riskAssessmentSchema>;
 
 export const deploymentIntelligenceReportSchema = z.object({
-  id: z.string().optional(),
+  id: z.string().uuid().optional(),
   commitSha: z.string(),
-  previousCommitSha: z.string(),
+  previousCommitSha: z.string().optional(),
   buildId: z.string(),
-  previousBuildId: z.string(),
+  previousBuildId: z.string().optional(),
   riskAssessment: riskAssessmentSchema,
   generatedSpecFiles: z.array(z.string()),
   correlationId: z.string(),
@@ -35,7 +35,7 @@ export const deploymentIntelligenceReportSchema = z.object({
 export type DeploymentIntelligenceReport = z.infer<typeof deploymentIntelligenceReportSchema>;
 
 export const testRunSchema = z.object({
-  id: z.string(),
+  id: z.string().uuid().optional(),
   testId: z.string(),
   status: z.enum(['queued', 'running', 'passed', 'failed']),
   artifacts: z.object({
@@ -50,6 +50,7 @@ export const testRunSchema = z.object({
 export type TestRun = z.infer<typeof testRunSchema>;
 
 export const rootCauseInsightSchema = z.object({
+  id: z.string().uuid().optional(),
   testId: z.string(),
   failureSummary: z.string(),
   rootCause: z.string(),
@@ -60,6 +61,23 @@ export const rootCauseInsightSchema = z.object({
 });
 
 export type RootCauseInsight = z.infer<typeof rootCauseInsightSchema>;
+
+export const aiTestSpecSchema = z.object({
+  id: z.string().uuid().optional(),
+  testId: z.string(),
+  specFile: z.string(),
+  title: z.string(),
+  description: z.string(),
+  steps: z.array(z.object({
+    action: z.string(),
+    selector: z.string().optional(),
+    value: z.string().optional(),
+    url: z.string().optional()
+  })),
+  createdAt: z.string().datetime().optional()
+});
+
+export type AiTestSpec = z.infer<typeof aiTestSpecSchema>;
 
 export function createBaseEnvelope(input: { eventType: string; orgId: string; projectId: string; payload?: unknown }) {
   return baseEnvelopeSchema.parse({
@@ -88,3 +106,19 @@ export function createDeploymentIntelligenceReport(input: Omit<DeploymentIntelli
 export function createRootCauseInsight(input: RootCauseInsight): RootCauseInsight {
   return rootCauseInsightSchema.parse(input);
 }
+
+export function createAiTestSpec(input: {
+  testId: string;
+  specFile: string;
+  title: string;
+  description: string;
+  steps: Array<{ action: string; selector?: string; value?: string; url?: string }>;
+}): AiTestSpec {
+  return aiTestSpecSchema.parse({
+    ...input,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString()
+  });
+}
+
+export * from './database.js';

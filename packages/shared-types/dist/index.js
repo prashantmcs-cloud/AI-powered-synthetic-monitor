@@ -14,18 +14,18 @@ export const riskAssessmentSchema = z.object({
     rationale: z.string()
 });
 export const deploymentIntelligenceReportSchema = z.object({
-    id: z.string().optional(),
+    id: z.string().uuid().optional(),
     commitSha: z.string(),
-    previousCommitSha: z.string(),
+    previousCommitSha: z.string().optional(),
     buildId: z.string(),
-    previousBuildId: z.string(),
+    previousBuildId: z.string().optional(),
     riskAssessment: riskAssessmentSchema,
     generatedSpecFiles: z.array(z.string()),
     correlationId: z.string(),
     createdAt: z.string().datetime().optional()
 });
 export const testRunSchema = z.object({
-    id: z.string(),
+    id: z.string().uuid().optional(),
     testId: z.string(),
     status: z.enum(['queued', 'running', 'passed', 'failed']),
     artifacts: z.object({
@@ -37,6 +37,7 @@ export const testRunSchema = z.object({
     createdAt: z.string().datetime().optional()
 });
 export const rootCauseInsightSchema = z.object({
+    id: z.string().uuid().optional(),
     testId: z.string(),
     failureSummary: z.string(),
     rootCause: z.string(),
@@ -44,6 +45,20 @@ export const rootCauseInsightSchema = z.object({
     confidence: z.number().min(0).max(1),
     relatedCommit: z.string().optional(),
     evidenceRefs: z.array(z.string())
+});
+export const aiTestSpecSchema = z.object({
+    id: z.string().uuid().optional(),
+    testId: z.string(),
+    specFile: z.string(),
+    title: z.string(),
+    description: z.string(),
+    steps: z.array(z.object({
+        action: z.string(),
+        selector: z.string().optional(),
+        value: z.string().optional(),
+        url: z.string().optional()
+    })),
+    createdAt: z.string().datetime().optional()
 });
 export function createBaseEnvelope(input) {
     return baseEnvelopeSchema.parse({
@@ -69,3 +84,11 @@ export function createDeploymentIntelligenceReport(input) {
 export function createRootCauseInsight(input) {
     return rootCauseInsightSchema.parse(input);
 }
+export function createAiTestSpec(input) {
+    return aiTestSpecSchema.parse({
+        ...input,
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString()
+    });
+}
+export * from './database.js';

@@ -1,19 +1,43 @@
-import { createRootCauseInsight, type RootCauseInsight } from '@ai-synthetic/shared-types';
+import type { RootCauseInsight } from '@ai-synthetic/shared-types';
 
 export interface FailureContext {
+  testRunId: string;
   testId: string;
   artifacts: string[];
   relatedCommit?: string;
+  error?: string;
 }
 
-export function analyzeFailure(context: FailureContext): RootCauseInsight {
-  return createRootCauseInsight({
+export function analyzeFailure(context: FailureContext): Omit<RootCauseInsight, 'id'> {
+  const errorPatterns = [
+    { pattern: /timeout|timed out/i, rootCause: 'Timeout', suggestedFix: 'Increase timeout or check server health', weight: 0.15 },
+    { pattern: /selector.*not found|element not found/i, rootCause: 'Missing UI Element', suggestedFix: 'Update selector or check for UI changes', weight: 0.2 },
+    { pattern: /network|connection refused/i, rootCause: 'Network Issue', suggestedFix: 'Check network configuration', weight: 0.1 },
+    { pattern: /authentication|401|403/i, rootCause: 'Auth Failure', suggestedFix: 'Verify credentials', weight: 0.12 }
+  ];
+  
+  let rootCause = 'Unknown failure';
+  let suggestedFix = 'Review test logs for details';
+  let confidence = 0.6;
+  
+  if (context.error) {
+    for (const { pattern, rootCause: rc, suggestedFix: fix, weight } of errorPatterns) {
+      if (pattern.test(context.error)) {
+        rootCause = rc;
+        suggestedFix = fix;
+        confidence = 0.75 + weight;
+        break;
+      }
+    }
+  }
+  
+  return {
     testId: context.testId,
-    failureSummary: 'The Playwright flow failed during automation execution.',
-    rootCause: 'A mismatch between the expected UI state and the live application state was detected.',
-    suggestedFix: 'Update the generated spec and verify the impacted page components before re-running.',
-    confidence: 0.84,
+    failureSummary: `Test ${context.testId} failed during execution`,
+    rootCause,
+    suggestedFix,
+    confidence,
     relatedCommit: context.relatedCommit,
     evidenceRefs: context.artifacts
-  });
+  };
 }

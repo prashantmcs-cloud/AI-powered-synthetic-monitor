@@ -1,10 +1,105 @@
 replicaCount: 1
+
+image:
+  repository: ai-synthetic/app
+  pullPolicy: IfNotPresent
+  tag: latest
+
+secrets:
+  name: ai-synthetic-secrets
+
+database:
+  host: postgres
+  name: ai_synthetic
+
+redis:
+  host: redis
+
+ingress:
+  enabled: true
+  host: ai-synthetic.example.com
+
 services:
-  deploymentIntelligence:
-    image: ai-synthetic/deployment-intelligence-agent:latest
-  playwrightExecution:
-    image: ai-synthetic/playwright-execution-engine:latest
-  rootCause:
-    image: ai-synthetic/root-cause-agent:latest
-  webUi:
-    image: ai-synthetic/web-ui:latest
+  - name: api-gateway
+    port: 8080
+    replicaCount: 2
+    image:
+      repository: ai-synthetic/api-gateway
+      tag: latest
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  - name: webhook-receiver
+    port: 3000
+    replicaCount: 1
+    image:
+      repository: ai-synthetic/webhook-receiver
+      tag: latest
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+
+  - name: playwright-execution-engine
+    port: 3001
+    replicaCount: 2
+    image:
+      repository: ai-synthetic/playwright-execution-engine
+      tag: latest
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1
+        memory: 2Gi
+
+  - name: deployment-intelligence-agent
+    port: 3002
+    replicaCount: 1
+    image:
+      repository: ai-synthetic/deployment-intelligence-agent
+      tag: latest
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  - name: root-cause-agent
+    port: 3003
+    replicaCount: 1
+    image:
+      repository: ai-synthetic/root-cause-agent
+      tag: latest
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  - name: web-ui
+    port: 3000
+    replicaCount: 2
+    image:
+      repository: ai-synthetic/web-ui
+      tag: latest
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi

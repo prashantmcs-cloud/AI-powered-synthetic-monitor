@@ -5,9 +5,12 @@
   "main": "./dist/server.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js"
   },
   "dependencies": {
+    "@ai-synthetic/database": "file:../../packages/database",
+    "@ai-synthetic/message-queue": "file:../../packages/message-queue",
     "@ai-synthetic/shared-types": "file:../../packages/shared-types"
   }
 }

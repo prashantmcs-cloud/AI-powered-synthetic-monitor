@@ -11,7 +11,9 @@
     "build": "npm run build --workspace @ai-synthetic/shared-types && npm run build --workspaces --if-present",
     "test": "npm run build --workspace @ai-synthetic/shared-types && node --import tsx --test packages/shared-types/src/**/*.test.ts services/deployment-intelligence-agent/src/**/*.test.ts services/playwright-execution-engine/src/**/*.test.ts services/root-cause-agent/src/**/*.test.ts services/webhook-receiver/src/**/*.test.ts",
     "dev:web": "node apps/web-ui/server.mjs",
-    "dev:webhook": "node services/webhook-receiver/dist/server.js"
+    "dev:webhook": "node services/webhook-receiver/dist/server.js",
+    "dev:api": "node services/api-gateway/dist/index.js",
+    "dev:ui": "npm run dev --workspace @ai-synthetic/web-ui"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",

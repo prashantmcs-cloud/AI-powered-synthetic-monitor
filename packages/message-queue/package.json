@@ -1,0 +1,13 @@
+{
+  "name": "@ai-synthetic/message-queue",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/redis.js",
+  "types": "./dist/redis.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "ioredis": "^5.4.0"
+  }
+}

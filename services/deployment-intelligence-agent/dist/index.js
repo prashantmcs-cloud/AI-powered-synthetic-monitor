@@ -1,9 +1,32 @@
 import { createDeploymentIntelligenceReport, createRiskAssessment } from '@ai-synthetic/shared-types';
+import { analyzeCommitChanges, generatePlaywrightTests } from './ai-analyzer.js';
 export function analyzeDeploymentIntelligence(event, build) {
+    const comparison = {
+        currentCommit: {
+            sha: event.commitSha,
+            message: 'Commit for analysis',
+            author: event.pusher,
+            files: [],
+            additions: 0,
+            deletions: 0
+        },
+        previousCommit: {
+            sha: event.previousCommitSha,
+            message: 'Previous commit'
+        }
+    };
+    const buildComparison = {
+        buildId: build.buildId,
+        previousBuildId: build.previousBuildId,
+        bundleSize: build.bundleSize,
+        previousBundleSize: build.bundleSize * 0.9,
+        dependencyDelta: build.dependencyDelta
+    };
+    const analysis = analyzeCommitChanges(comparison);
     const riskAssessment = createRiskAssessment({
-        riskScore: computeRiskScore(event, build),
-        affectedFlows: inferAffectedFlows(event),
-        rationale: `Compared ${event.commitSha} against ${event.previousCommitSha} with build ${build.buildId} vs ${build.previousBuildId}.`
+        riskScore: analysis.riskScore,
+        affectedFlows: analysis.affectedFlows,
+        rationale: analysis.rationale
     });
     return createDeploymentIntelligenceReport({
         commitSha: event.commitSha,
@@ -11,23 +34,8 @@ export function analyzeDeploymentIntelligence(event, build) {
         buildId: build.buildId,
         previousBuildId: build.previousBuildId,
         riskAssessment,
-        generatedSpecFiles: generateSpecFiles(event, riskAssessment),
+        generatedSpecFiles: analysis.affectedFlows.map(f => `tests/generated/${event.commitSha.substring(0, 7)}-${f}.spec.ts`),
         correlationId: crypto.randomUUID()
     });
 }
-export function generateSpecFiles(event, risk) {
-    const baseDir = 'tests/generated';
-    return risk.affectedFlows.map((flow, index) => `${baseDir}/${event.repo.replace(/\W+/g, '-')}-${flow}-${index + 1}.spec.ts`);
-}
-function inferAffectedFlows(event) {
-    const flows = ['checkout', 'login', 'dashboard'];
-    if (event.commitSha.includes('feature')) {
-        return ['checkout'];
-    }
-    return flows.filter((flow) => flow.length > 0).slice(0, 2);
-}
-function computeRiskScore(event, build) {
-    const commitDelta = event.commitSha.length % 5;
-    const buildDelta = build.bundleSize > 180000 ? 0.25 : 0.1;
-    return Math.min(0.99, 0.3 + commitDelta * 0.08 + buildDelta);
-}
+export { analyzeCommitChanges, generatePlaywrightTests };

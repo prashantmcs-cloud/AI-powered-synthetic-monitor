@@ -1,10 +1,7 @@
 import { type TestRun } from '@ai-synthetic/shared-types';
-export interface ExecutionInput {
-    reportId: string;
-    specFiles: string[];
-    riskScore: number;
-}
-export declare function executeSpecFiles(input: ExecutionInput): TestRun[];
+import { executeSpecFiles, analyzeFailure } from './runner.js';
+export { executeSpecFiles, analyzeFailure };
+export type { ExecutionInput } from './runner.js';
 export declare function createFailureInsight(testRun: TestRun): {
     testId: string;
     failureSummary: string;
@@ -12,12 +9,17 @@ export declare function createFailureInsight(testRun: TestRun): {
     suggestedFix: string;
     confidence: number;
     evidenceRefs: string[];
+    id?: string | undefined;
     relatedCommit?: string | undefined;
 };
-export declare function emitExecutionEvent(input: ExecutionInput): {
+export declare function emitExecutionEvent(input: {
+    reportId: string;
+    specFiles: string[];
+    riskScore: number;
+}): {
+    correlationId: string;
     eventType: string;
     occurredAt: string;
-    correlationId: string;
     orgId: string;
     projectId: string;
     eventId?: string | undefined;

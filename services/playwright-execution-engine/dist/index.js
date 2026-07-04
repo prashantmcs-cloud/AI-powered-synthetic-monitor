@@ -1,18 +1,6 @@
 import { createBaseEnvelope, createRootCauseInsight } from '@ai-synthetic/shared-types';
-export function executeSpecFiles(input) {
-    return input.specFiles.map((specFile, index) => ({
-        id: `run-${index + 1}`,
-        testId: specFile,
-        status: input.riskScore > 0.7 ? 'failed' : 'passed',
-        artifacts: {
-            screenshots: [`artifacts/${specFile.replace(/\W+/g, '-')}-start.png`],
-            video: `artifacts/${specFile.replace(/\W+/g, '-')}.webm`,
-            trace: `artifacts/${specFile.replace(/\W+/g, '-')}.zip`,
-            har: `artifacts/${specFile.replace(/\W+/g, '-')}.har`
-        },
-        createdAt: new Date().toISOString()
-    }));
-}
+import { executeSpecFiles, analyzeFailure } from './runner.js';
+export { executeSpecFiles, analyzeFailure };
 export function createFailureInsight(testRun) {
     return createRootCauseInsight({
         testId: testRun.testId,

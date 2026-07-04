@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-synthetic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-synthetic
+  template:
+    metadata:
+      labels:
+        app: ai-synthetic
+    spec:
+      containers:
+        - name: api-gateway
+          image: ai-synthetic/api-gateway:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@postgres:5432/ai_synthetic"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+
+        - name: webhook-receiver
+          image: ai-synthetic/webhook-receiver:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@postgres:5432/ai_synthetic"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ai-synthetic-secrets
+                  key: github-token
+
+        - name: worker
+          image: ai-synthetic/worker:latest
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@postgres:5432/ai_synthetic"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+          volumeMounts:
+            - name: artifacts
+              mountPath: /artifacts
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 1
+              memory: 2Gi
+
+        - name: web-ui
+          image: ai-synthetic/web-ui:latest
+          ports:
+            - containerPort: 3000
+
+      volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: artifacts-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-synthetic-service
+spec:
+  selector:
+    app: ai-synthetic
+  ports:
+    - name: api
+      port: 8080
+      targetPort: 8080
+    - name: webhook
+      port: 3000
+      targetPort: 3000
+    - name: ui
+      port: 3001
+      targetPort: 3000

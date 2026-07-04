@@ -1,0 +1,14 @@
+{
+  "name": "@ai-synthetic/database",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/repository.js",
+  "types": "./dist/repository.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ai-synthetic/shared-types": "file:../../packages/shared-types",
+    "pg": "^8.13.1"
+  }
+}

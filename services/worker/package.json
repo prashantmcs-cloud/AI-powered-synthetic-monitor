@@ -1,0 +1,16 @@
+{
+  "name": "@ai-synthetic/worker",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@ai-synthetic/database": "file:../../packages/database",
+    "@ai-synthetic/message-queue": "file:../../packages/message-queue",
+    "@ai-synthetic/playwright-execution-engine": "file:../../services/playwright-execution-engine"
+  }
+}
